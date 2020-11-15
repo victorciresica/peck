@@ -26,7 +26,7 @@ class PECK:
         return x, y
 
     def peck(self):
-        w = ("Victor", "Iulian")                                        # KEYWORD SET
+        w = ["Victor", "Iulian", "Marian"]                              # KEYWORD SET
         s = get_random(self.r)                                          # RANDOM PARAM
         r = get_random(self.r)                                          # RANDOM PARAM
 
@@ -48,7 +48,8 @@ class PECK:
         t = get_random(self.r)                                          # RANDOM PARAM
         TQ1 = self.g ** t
 
-        w = ("Iulian", "Victor")                                        # KEYWORD SET
+        w = ["Marian"]                                        # KEYWORD SET
+        pos = [2]
         TQ2 = Element.one(self.pairing, G1)
         for i in range(len(w)):
             hash1 = sha256()
@@ -63,23 +64,25 @@ class PECK:
             TQ3 *= Element.from_hash(self.pairing, G1, hash2.hexdigest())
         TQ3 = TQ3 ** (t * pow(self.x, -1, self.r))
 
-        return TQ1, TQ2, TQ3
+        return TQ1, TQ2, TQ3, pos
 
-    def test(self, TQ1, TQ2, TQ3, A, B, C):
-        left = self.pairing.apply(TQ1, self.prod(C))
+    def test(self, TQ1, TQ2, TQ3, A, B, C, pos):
+        left = self.pairing.apply(TQ1, self.prod(C, pos))
         right = self.pairing.apply(A, TQ2) * self.pairing.apply(B, TQ3)
         if left == right:
             print("Found!")
+        else:
+            print("Not found!")
 
-    def prod(self, C):
-        prod = C[0]
-        for i in range(1, len(C)):
+    def prod(self, C, pos):
+        prod = Element.one(self.pairing, G1)
+        for i in pos:
             prod *= C[i]
         return prod
 
 
 if __name__ == "__main__":
     peck_scheme = PECK()
-    [A, B, C] = peck_scheme.peck()
-    [TQ1, TQ2, TQ3] = peck_scheme.trapdoor()
-    peck_scheme.test(TQ1, TQ2, TQ3, A, B, C)
+    A, B, C = peck_scheme.peck()
+    TQ1, TQ2, TQ3, pos = peck_scheme.trapdoor()
+    peck_scheme.test(TQ1, TQ2, TQ3, A, B, C, pos)
